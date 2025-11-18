@@ -1,9 +1,8 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect } from 'react'
 // import {FormType} from './schema';
 
-import { isAuthenticated } from '@/lib/actions/auth.action'
 import { redirect } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -18,7 +17,7 @@ import FormField from './FormField'
 import { useRouter } from 'next/navigation'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/firebase/client'
-import { signIn, signUp } from '@/lib/actions/auth.action'
+import { signIn, signUp, checkUserAuth } from '@/lib/actions/auth.action'
 
 type FormType = 'sign-in' | 'sign-up';
 
@@ -30,18 +29,35 @@ const authFormSchema = (type: FormType) => {
         password: z.string().min(3),
     })
 }
-const AuthForm = async ({ type }: { type: FormType }) => {
-    const isUserAuthenticated = await isAuthenticated();
 
-    if (isUserAuthenticated) redirect('/');
+
+
+const AuthForm = ({ type }: { type: FormType }) => {
     const router = useRouter();
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const verify = async () => {
+            const authed = await checkUserAuth(); // safe call
+            if (!cancelled && authed) router.replace("/");
+        };
+
+        verify();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [router]);
+
     const formSchema = authFormSchema(type);
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
             email: "",
-            password: "",
+            password: ""
         },
     })
 

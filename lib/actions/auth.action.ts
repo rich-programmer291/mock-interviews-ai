@@ -129,3 +129,14 @@ export async function isAuthenticated(){
     const user = await getCurrentUser();
     return !!user;
 }
+
+export async function checkUserAuth() {
+  return await isAuthenticated();
+}
+
+export async function logoutAction(){
+    const cookieStore = await cookies();
+    cookieStore.delete("session");
+
+    return true;
+}
