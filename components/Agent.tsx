@@ -3,10 +3,13 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 interface AgentProps {
-  userName: string,
-  type: string,
-  userId: string
-};
+  userName: string;
+  userId?: string;
+  interviewId?: string;
+  feedbackId?: string;
+  type: "generate" | "interview";
+  questions?: string[];
+}
 
 enum CallStatus {
   INACTIVE = 'INACTIVE',
