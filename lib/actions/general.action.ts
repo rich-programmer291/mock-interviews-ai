@@ -100,8 +100,8 @@ export async function getFeedbackbyInterviewId(params: GetFeedbackByInterviewIdP
     const { interviewId, userId } = params;
 
     const feedback = await db.collection('feedback')
-        .where('interviewId', '==', interviewId)
         .where("userId", '==', userId)
+        .where('interviewId', '==', interviewId)
         .limit(1)
         .get();
 
