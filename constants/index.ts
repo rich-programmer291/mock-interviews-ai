@@ -155,39 +155,54 @@ End the conversation on a polite and positive note.
   },
 };
 
+const CategoryScoreSchema = z.object({
+  // Use z.enum to ensure the name is one of the five required strings (order is flexible)
+  name: z.enum([
+    "Communication Skills",
+    "Technical Knowledge",
+    "Problem Solving",
+    "Cultural Fit",
+    "Confidence and Clarity",
+  ]),
+  score: z.number(),
+  comment: z.string(),
+});
+
 export const feedbackSchema = z.object({
   totalScore: z.number(),
-  categoryScores: z.tuple([
-    z.object({
-      name: z.literal("Communication Skills"),
-      score: z.number(),
-      comment: z.string(),
-    }),
-    z.object({
-      name: z.literal("Technical Knowledge"),
-      score: z.number(),
-      comment: z.string(),
-    }),
-    z.object({
-      name: z.literal("Problem Solving"),
-      score: z.number(),
-      comment: z.string(),
-    }),
-    z.object({
-      name: z.literal("Cultural Fit"),
-      score: z.number(),
-      comment: z.string(),
-    }),
-    z.object({
-      name: z.literal("Confidence and Clarity"),
-      score: z.number(),
-      comment: z.string(),
-    }),
-  ]),
+  categoryScores: z.array(CategoryScoreSchema),
   strengths: z.array(z.string()),
   areasForImprovement: z.array(z.string()),
   finalAssessment: z.string(),
 });
+
+// [
+//     z.object({
+//       name: z.literal("Communication Skills"),
+//       score: z.number(),
+//       comment: z.string(),
+//     }),
+//     z.object({
+//       name: z.literal("Technical Knowledge"),
+//       score: z.number(),
+//       comment: z.string(),
+//     }),
+//     z.object({
+//       name: z.literal("Problem Solving"),
+//       score: z.number(),
+//       comment: z.string(),
+//     }),
+//     z.object({
+//       name: z.literal("Cultural Fit"),
+//       score: z.number(),
+//       comment: z.string(),
+//     }),
+//     z.object({
+//       name: z.literal("Confidence and Clarity"),
+//       score: z.number(),
+//       comment: z.string(),
+//     }),
+//   ]
 
 export const interviewCovers = [
   "/adobe.png",

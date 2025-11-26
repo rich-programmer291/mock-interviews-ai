@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Vapi from "@vapi-ai/web";
 import { toast } from 'sonner';
 import { interviewer } from "@/constants";
+import { createFeedback } from "@/lib/actions/general.action";
 // import type Message from "@vapi-ai/web";
 
 const vapi = new Vapi(
@@ -96,11 +97,13 @@ const TrialAgent = ({ userName, type, userId, interviewId, questions }: TrialAge
 
     const handleGenerateFeedback = async (messages: SavedMessage[]) => {
         console.log('Feedback Generate Here.');
-        const { success, id } = {
-            success: true,
-            id: 'feedback-id'
-        }
 
+        const { success, feedbackId: id } = await createFeedback({
+            interviewId: interviewId!,
+            userId: userId!,
+            transcript: messages,
+
+        })
         if (success && id) {
             router.push(`/interview/${id}/feedback`);
         } else {

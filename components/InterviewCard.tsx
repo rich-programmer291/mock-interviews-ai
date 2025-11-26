@@ -18,7 +18,6 @@ interface InterviewCardProps {
     type: string;
     techstack: string[];
     createdAt?: string;
-    // finalized: boolean;
 }
 
 const InterviewCard = ({ id, userId, role, type, techstack, createdAt }: InterviewCardProps) => {
