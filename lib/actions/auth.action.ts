@@ -5,7 +5,7 @@ import { success } from "zod";
 import { collection } from "firebase/firestore";
 import { cookies } from "next/headers";
 
-interface User{
+interface User {
     id: string,
     email: string,
     name: string
@@ -105,38 +105,69 @@ export async function signIn(params: SignInParams) {
     }
 }
 
-export async function getCurrentUser(): Promise<User | null>{
-    const cookieStore = await  cookies();
+export async function getCurrentUser(): Promise<User | null> {
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
-    if(!sessionCookie) return null;
+    if (!sessionCookie) return null;
     try {
-        const decodeClaims = await auth.verifySessionCookie(sessionCookie,true);
+        const decodeClaims = await auth.verifySessionCookie(sessionCookie, true);
         const userRecord = await db.collection('users').doc(decodeClaims.uid).get();
-        if(!userRecord.exists) return null;
+        if (!userRecord.exists) return null;
 
         return {
             ...userRecord.data(),
             id: userRecord.id,
         } as User;
-        
+
     } catch (e) {
         console.log(e);
         return null;
     }
 }
 
-export async function isAuthenticated(){
+export async function getCurrentUserInfo() {
+    const user = await getCurrentUser();
+    return user as User;
+}
+
+export async function isAuthenticated() {
     const user = await getCurrentUser();
     return !!user;
 }
 
 export async function checkUserAuth() {
-  return await isAuthenticated();
+    return await isAuthenticated();
 }
 
-export async function logoutAction(){
+export async function logoutAction() {
     const cookieStore = await cookies();
     cookieStore.delete("session");
 
     return true;
+}
+
+export async function getInterviewbyUserId(userId: string): Promise<Interview[] | null> {
+    const interviews = await db.collection('interviews').where("userId", '==', userId).orderBy('createdAt', 'desc').get();
+    // console.log(interviews);
+    return interviews.docs.map((doc: any) => ({
+        id: doc.id,
+        ...doc.data()
+    })) as Interview[];
+}
+
+export async function getLatestInterviews(params: GetLatestInterviewsParams): Promise<Interview[] | null> {
+    const { userId, limit = 20 } = params;
+
+    const interviews = await db.collection('interviews')
+        .orderBy('createdAt', 'desc')
+        .where('finalized', '==', true)
+        .where("userId", '!=', userId)
+        .limit(limit)
+        .get();
+
+    // console.log(interviews);
+    return interviews.docs.map((doc: any) => ({
+        id: doc.id,
+        ...doc.data()
+    })) as Interview[];
 }
