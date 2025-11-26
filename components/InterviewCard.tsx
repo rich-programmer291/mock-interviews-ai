@@ -12,7 +12,7 @@ type Feedback = {
 };
 
 interface InterviewCardProps {
-    interviewId?: string;
+    id?: string;
     userId?: string;
     role: string;
     type: string;
@@ -21,8 +21,9 @@ interface InterviewCardProps {
     // finalized: boolean;
 }
 
-const InterviewCard = ({ interviewId, userId, role, type, techstack, createdAt }: InterviewCardProps) => {
+const InterviewCard = ({ id, userId, role, type, techstack, createdAt }: InterviewCardProps) => {
     const feedback = null as Feedback | null;
+    // console.log(id,feedback);
     const normalizedType = /mix/gi.test(type) ? 'Mixed' : type;
     const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D, YYYY');
 
@@ -56,9 +57,9 @@ const InterviewCard = ({ interviewId, userId, role, type, techstack, createdAt }
                     <hr className="my-5 mt-12"/>
                     <div className="flex flex-row justify-between mt-5">
                         <DisplayTechIcons techStack={techstack} />
-                        <Button className="btn-primary pl-2">
-                            <Link href={feedback ? `/interview/${interviewId}/feedback` : `/interview/${interviewId}`} /> 
-                            {feedback ? 'Check Feedback' : 'Take the Interview'}
+                        <Button className="btn-primary">
+                            <Link href={feedback ? `/interview/${id}/feedback` : `/interview/${id}`} > 
+                            {feedback!==null ? 'Check Feedback' : 'Take the Interview'} </Link>
                         </Button>
                     </div>
                 </div>

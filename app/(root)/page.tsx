@@ -3,7 +3,8 @@ import InterviewCard from '@/components/InterviewCard'
 import { dummyInterviews } from '@/constants'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getCurrentUserInfo, getInterviewbyUserId, getLatestInterviews } from '@/lib/actions/auth.action'
+import { getCurrentUserInfo } from '@/lib/actions/auth.action'
+import {getInterviewbyUserId, getLatestInterviews} from '@/lib/actions/general.action';
 
 const Page = async () => {
 

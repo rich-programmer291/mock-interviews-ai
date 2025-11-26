@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import Vapi from "@vapi-ai/web";
 import { toast } from 'sonner';
+import { interviewer } from "@/constants";
 // import type Message from "@vapi-ai/web";
 
 const vapi = new Vapi(
@@ -32,7 +33,7 @@ interface SavedMessage {
     content: string;
 }
 
-const TrialAgent = ({ userName, type, userId }: TrialAgentProps) => {
+const TrialAgent = ({ userName, type, userId, interviewId, questions }: TrialAgentProps) => {
     const router = useRouter();
 
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -41,12 +42,12 @@ const TrialAgent = ({ userName, type, userId }: TrialAgentProps) => {
 
     useEffect(() => {
         const onCallStart = () => {
-            setCallStatus(()=>CallStatus.ACTIVE)
+            setCallStatus(() => CallStatus.ACTIVE)
             console.log('Call Started');
             toast.success('Call Started Successfully.');
         };
         const onCallEnd = () => {
-            setCallStatus(()=>CallStatus.FINISHED);
+            setCallStatus(() => CallStatus.FINISHED);
             console.log('Call Ended');
             toast.success('Call Ended Successfully.');
         };
@@ -64,15 +65,15 @@ const TrialAgent = ({ userName, type, userId }: TrialAgentProps) => {
 
         const onSpeechStart = () => {
             console.log('Assistant is Speaking');
-            setIsSpeaking(()=>true)
+            setIsSpeaking(() => true)
         };
         const onSpeechEnd = () => {
             console.log('Assistant stopped Speaking');
-            setIsSpeaking(()=>false)
+            setIsSpeaking(() => false)
         };
         const onError = (error: any) => {
             console.log("Vapi error:", error);
-            setCallStatus(()=>CallStatus.INACTIVE)
+            setCallStatus(() => CallStatus.INACTIVE)
         }
 
         // Register listeners using the latest event names
@@ -93,40 +94,74 @@ const TrialAgent = ({ userName, type, userId }: TrialAgentProps) => {
         };
     }, []);
 
+    const handleGenerateFeedback = async (messages: SavedMessage[]) => {
+        console.log('Feedback Generate Here.');
+        const { success, id } = {
+            success: true,
+            id: 'feedback-id'
+        }
+
+        if (success && id) {
+            router.push(`/interview/${id}/feedback`);
+        } else {
+            console.log('Error Saving feedback');
+            router.push('/');
+        }
+    }
+
     useEffect(() => {
+
         if (callStatus === CallStatus.FINISHED) {
-            router.push("/");
+            if (type === 'generate') {
+                router.push("/");
+            }
+            else {
+                handleGenerateFeedback(messages);
+            }
         }
     }, [messages, callStatus, type, userId]);
 
     const handleCall = async () => {
         try {
-            setCallStatus(CallStatus.CONNECTING);
+            setCallStatus(() => CallStatus.CONNECTING);
+            if (type === 'generate') {
+                await vapi.start(
+                    undefined,
+                    undefined,
+                    undefined,
+                    process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
+                    variableValues: {
+                        username: userName,
+                        userid: userId,
+                    },
+                });
+            } else {
+                let formattedQuestions = '';
+                if (questions) {
+                    formattedQuestions = questions.map((ques) => `-${ques}`).join('\n');
+                }
+                await vapi.start(
+                    interviewer, {
+                    variableValues: {
+                        questions: formattedQuestions
+                    },
+                });
+            }
 
-            await vapi.start(
-                undefined,
-                undefined,
-                undefined,
-                process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-                variableValues: {
-                    username: userName,
-                    userid: userId,
-                },
-            });
         } catch (error) {
             console.error("Failed to start VAPI workflow:", error);
-            setCallStatus(CallStatus.INACTIVE);
+            setCallStatus(() => CallStatus.INACTIVE);
         }
     };
 
     const handleDisconnect = async () => {
         // ask SDK to stop the current call/workflow
         try {
-            vapi.stop();
+            await vapi.stop();
             console.log('Call Ended');
         } catch (e) {
             console.warn("vapi.stop() threw:", e);
-            setCallStatus(CallStatus.FINISHED);
+            setCallStatus(() => CallStatus.FINISHED);
         }
 
     };
@@ -152,14 +187,16 @@ const TrialAgent = ({ userName, type, userId }: TrialAgentProps) => {
 
                 <div className="card-border">
                     <div className="card-content">
+                        {/* <div className="avatar"> */}
                         <Image
                             src="/user-avatar.png"
                             width={540}
                             height={540}
-                            alt="user avatar"
+                            alt="user-avatar"
                             className="rounded-full object-cover size-[120px]"
                         />
-                        {!isSpeaking && <span className="animate-speak" />}
+                        {/* {!isSpeaking && <span className="animate-speak" />} */}
+                        {/* </div> */}
                         <h3>{userName}</h3>
                     </div>
                 </div>
